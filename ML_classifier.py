@@ -44,12 +44,12 @@ class MLClassifier:
         return X_train, X_test, y_train, y_test
     
     def calculate_metrics_for_combinations(self):
-        hops = [-5,-4,-3,-2,-1,0,1,2,3,4,5]  # From i-5 to i+5
-        time_diffs = np.arange(-4, 7.5, 0.5)  # Correct use of time_diffs
+        hops = [-5,-4,-3,-2,-1,0,1,2,3,4,5]  
+        time_diffs = np.arange(-4, 7.5, 0.5)  
         features = ['speed', 'volume', 'occupancy']
         
         results = []
-        for time_diff in time_diffs:  # Use predefined time_diffs
+        for time_diff in time_diffs:  
             filtered_data = self.data[np.isclose(self.data['time_diff'], time_diff, atol=0.1)]
             
             if filtered_data.empty:
@@ -59,7 +59,7 @@ class MLClassifier:
                 for feature in features:
                     feature_name = f"{feature} (i{hop:+})"
                     if feature_name not in filtered_data.columns:
-                        continue  # Skip if the feature does not exist in the data
+                        continue  
 
                     X_train, X_test, y_train, y_test = self.preprocess_data(filtered_data, drop_time_diff=False)
                     model_results = self.train_models_specific_feature(X_train, X_test, y_train, y_test, feature_name)
@@ -78,7 +78,7 @@ class MLClassifier:
     def train_models_specific_feature(self, X_train, X_test, y_train, y_test, feature_name):
         model_results = {}
         for model_name, model in self.models.items():
-            model.fit(X_train[[feature_name]], y_train)  # Train using only the specific feature
+            model.fit(X_train[[feature_name]], y_train) 
             y_pred = model.predict(X_test[[feature_name]])
             y_pred_proba = model.predict_proba(X_test[[feature_name]])[:, 1]
             
@@ -101,33 +101,25 @@ class MLClassifier:
             elif setting == 2:
                 df = df[(df['hop'] <= 0) & (df['time_diff'] >= 0)]
 
-            #print("Filtered DataFrame for heatmap:")
-            #print(df['hop'].unique())
-            
-            # Zmiana kierunku agregacji danych - 'hop' staje się kolumnami
             df_agg = df.groupby(['hop', 'time_diff'])[metric].mean().unstack()
 
             plt.figure(figsize=(12, 10))
-            # Utworzenie heatmapy z zamienionymi osiami
             sns.heatmap(df_agg, annot=True, cmap='YlOrRd', fmt=".2f", cbar_kws={'label': metric})
             plt.title(f'Heatmap of {metric} for {model_name} (Setting {setting})')
-            plt.ylabel('Hop')  # Zmieniono etykietę osi X
-            plt.xlabel('Time Diff (min)')  # Zmieniono etykietę osi Y
+            plt.ylabel('Hop') 
+            plt.xlabel('Time Diff (min)')  
             plt.xticks(rotation=45)
             plt.yticks(rotation=0)
             plt.show()
 
     def plot_shap_values(self, model_name='XGBoost'):
-        # Use the entire dataset for SHAP value analysis
         X_train, X_test, y_train, y_test = self.preprocess_data(self.data, drop_time_diff=False)
         model = self.models[model_name]
         model.fit(X_train, y_train)
 
-        # Create the SHAP explainer and calculate SHAP values
         explainer = shap.Explainer(model, X_train)
         shap_values = explainer(X_train)
 
-        # Plot SHAP values using SHAP summary plot
         plt.figure(figsize=(10, 6))
         shap.summary_plot(shap_values, X_train, plot_type="dot")
         plt.show()
@@ -144,7 +136,7 @@ class MLClassifier:
                 dr_values = [res['DR'] for res in setting_results]
                 far_values = [res['FAR'] for res in setting_results]
                 auc_roc_values = [res['AUC-ROC'] for res in setting_results]
-                auc_pr_values = [res.get('AUC-PR', np.nan) for res in setting_results]  # Use .get() to avoid KeyError
+                auc_pr_values = [res.get('AUC-PR', np.nan) for res in setting_results] 
 
                 summary['Setting'].append(f'Setting {setting}')
                 summary['Model'].append(model_name)
@@ -155,7 +147,4 @@ class MLClassifier:
         
         df_summary = pd.DataFrame(summary)
         return df_summary
-
-# Usage
-# Assuming 'data' is a DataFrame loaded with your data and 'target' is the target column name
 
