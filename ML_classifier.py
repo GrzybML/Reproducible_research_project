@@ -23,12 +23,10 @@ class MLClassifier:
         }
         self.param_grids = {
             'Logistic Regression': {
-                'clf__C': [0.01, 0.1, 1, 10, 100, 1000],
-                'clf__penalty': ['l1', 'l2'],
+                'clf__C': [0.01, 0.1, 1, 10, 100, 1000]
             },
             'Random Forest': {
-                'clf__n_estimators': [10, 100, 1000],
-                'clf__max_features': ['auto', 'sqrt', 'log2']
+                'clf__n_estimators': [10, 100, 1000]
             },
             'XGBoost': {
                 'clf__n_estimators': [10, 100, 1000],
@@ -38,6 +36,15 @@ class MLClassifier:
         self.best_params = {}
         self.output_dir = output_dir
         os.makedirs(output_dir, exist_ok=True)
+        
+    def preprocess_data(self, data, drop_time_diff=True):
+        if drop_time_diff:
+            X = data.drop(columns=[self.target, 'time_diff'])
+        else:
+            X = data.drop(columns=[self.target])
+        y = data[self.target]
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, stratify=y, random_state=42)
+        return X_train, X_test, y_train, y_test
 
     def train_models(self):
         X_train, X_test, y_train, y_test = self.preprocess_data(self.data)
@@ -64,15 +71,6 @@ class MLClassifier:
             print(f"Best parameters for {model_name}: {grid_search.best_params_}")
             print(f"AUC-ROC for {model_name}: {auc:.4f}")
             print("-----")
-
-    def preprocess_data(self, data, drop_time_diff=True):
-        if drop_time_diff:
-            X = data.drop(columns=[self.target, 'time_diff'])
-        else:
-            X = data.drop(columns=[self.target])
-        y = data[self.target]
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, stratify=y, random_state=42)
-        return X_train, X_test, y_train, y_test
     
     def calculate_metrics_for_combinations(self):
         hops = [-5,-4,-3,-2,-1,0,1,2,3,4,5]  
