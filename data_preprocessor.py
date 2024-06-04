@@ -11,7 +11,7 @@ class DataPreprocessor:
         
         for col in columns:
             if self.data[col].isnull().any() and self.data[col].dtype in ['int64', 'float64']:
-                self.data[col] = self.data[col].fillna(self.data[col].mean())
+                self.data[col] = self.data[col].fillna(self.data[col].median())
             elif self.data[col].isnull().any() and self.data[col].dtype == 'object':
                 self.data[col] = self.data[col].fillna('Unknown')
                 
