@@ -22,10 +22,13 @@ class MLClassifier:
         }
         self.param_grids = {
             'Logistic Regression': {
-                'classifier__C': [0.01, 0.1, 1, 10, 100]
+                'classifier__C': [0.01, 0.1, 1, 10, 100, 1000],
+                'classifier__penalty': ['l1', 'l2'],
+
             },
             'Random Forest': {
-                'classifier__n_estimators': [10, 100, 1000]
+                'classifier__n_estimators': [10, 100, 1000],
+                'classifier__max_features': ['auto', 'sqrt', 'log2']
             },
             'XGBoost': {
                 'classifier__n_estimators': [10, 100, 1000],
@@ -83,7 +86,7 @@ class MLClassifier:
             y_pred_proba = model.predict_proba(X_test[[feature_name]])[:, 1]
             
             dr = recall_score(y_test, y_pred)
-            far = 1 - precision_score(y_test, y_pred)
+            far = 1 - precision_score(y_test, y_pred, zero_division=1)
             auc_roc = roc_auc_score(y_test, y_pred_proba)
             precision, recall, _ = precision_recall_curve(y_test, y_pred_proba)
             auc_pr = auc(recall, precision)
@@ -97,9 +100,9 @@ class MLClassifier:
             df = pd.DataFrame([res for res in results if res['model'] == model_name])
             
             if setting == 1:
-                df = df[(df['hop'] >= 0) & (df['time_diff'] >= 0)]
-            elif setting == 2:
                 df = df[(df['hop'] <= 0) & (df['time_diff'] >= 0)]
+            elif setting == 2:
+                df = df[(df['time_diff'] >= 0)]
 
             df_agg = df.groupby(['hop', 'time_diff'])[metric].mean().unstack()
 
@@ -147,4 +150,3 @@ class MLClassifier:
         
         df_summary = pd.DataFrame(summary)
         return df_summary
-
