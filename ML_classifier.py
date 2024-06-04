@@ -34,6 +34,32 @@ class MLClassifier:
         }
         self.best_params = {}
     
+    def train_models(self):
+        X_train, X_test, y_train, y_test = self.preprocess_data(self.data)
+        
+        for model_name, model in self.models.items():
+            smote = SMOTE(random_state=42, k_neighbors=5)
+            pipeline = imbpipeline(steps=[('smote', smote), ('clf', model)])
+            grid_search = GridSearchCV(
+                estimator=pipeline,
+                param_grid=self.param_grids[model_name],
+                scoring=make_scorer(roc_auc_score),
+                cv=StratifiedKFold(n_splits=5, shuffle=True, random_state=42),
+                n_jobs=1,
+                verbose=1
+            )
+            
+            grid_search.fit(X_train, y_train)
+            self.best_params[model_name] = grid_search.best_params_
+            best_model = grid_search.best_estimator_
+            y_pred = best_model.predict(X_test)
+            y_pred_proba = best_model.predict_proba(X_test)[:, 1]
+            auc = roc_auc_score(y_test, y_pred_proba)
+            
+            print(f"Best parameters for {model_name}: {grid_search.best_params_}")
+            print(f"AUC-ROC for {model_name}: {auc:.4f}")
+            print("-----")
+
     def preprocess_data(self, data, drop_time_diff=True):
         if drop_time_diff:
             X = data.drop(columns=[self.target, 'time_diff'])
