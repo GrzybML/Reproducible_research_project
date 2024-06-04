@@ -6,13 +6,14 @@ from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKF
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 import xgboost as xgb
-from sklearn.metrics import roc_auc_score, make_scorer, recall_score, precision_score, precision_recall_curve, auc
+from sklearn.metrics import roc_auc_score, make_scorer, recall_score, precision_score, precision_recall_curve, auc, confusion_matrix
 from imblearn.over_sampling import SMOTE
 from imblearn.pipeline import Pipeline as imbpipeline
 import shap
+import os
 
 class MLClassifier:
-    def __init__(self, data, target):
+    def __init__(self, data, target, output_dir='output'):
         self.data = data
         self.target = target
         self.models = {
@@ -35,6 +36,8 @@ class MLClassifier:
             }
         }
         self.best_params = {}
+        self.output_dir = output_dir
+        os.makedirs(output_dir, exist_ok=True)
 
     def train_models(self):
         X_train, X_test, y_train, y_test = self.preprocess_data(self.data)
@@ -112,9 +115,11 @@ class MLClassifier:
             pipeline.fit(X_train[[feature_name]], y_train)
             y_pred = pipeline.predict(X_test[[feature_name]])
             y_pred_proba = pipeline.predict_proba(X_test[[feature_name]])[:, 1]
+            cm = confusion_matrix(y_test, y_pred)
+            tn, fp, fn, tp = cm.ravel()
 
             dr = recall_score(y_test, y_pred)
-            far = 1 - precision_score(y_test, y_pred, zero_division=1)
+            far = fp / (fp + tn) if (fp + tn) > 0 else 0
             auc_roc = roc_auc_score(y_test, y_pred_proba)
             precision, recall, _ = precision_recall_curve(y_test, y_pred_proba)
             auc_pr = auc(recall, precision)
@@ -141,7 +146,10 @@ class MLClassifier:
             plt.xlabel('Time Diff (min)')  
             plt.xticks(rotation=45)
             plt.yticks(rotation=0)
-            plt.show()
+            
+            output_path = os.path.join(self.output_dir, f'heatmap_{model_name}_{metric}_setting_{setting}.png')
+            plt.savefig(output_path)
+            plt.close()
 
     def plot_shap_values(self, model_name='XGBoost'):
         X_train, X_test, y_train, y_test = self.preprocess_data(self.data, drop_time_diff=False)
@@ -153,8 +161,9 @@ class MLClassifier:
 
         plt.figure(figsize=(10, 6))
         shap.summary_plot(shap_values, X_train, plot_type="dot")
+
         plt.show()
-    
+
     def generate_summary_table(self, results):
         summary = {'Setting': [], 'Model': [], 'DR': [], 'FAR': [], 'AUC-ROC': [], 'AUC-PR': []}
         for setting in [1, 2]:
