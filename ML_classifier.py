@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKF
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 import xgboost as xgb
-from sklearn.metrics import roc_auc_score, make_scorer, recall_score, precision_score, confusion_matrix, precision_recall_curve, auc
+from sklearn.metrics import roc_auc_score, make_scorer, recall_score, precision_score, precision_recall_curve, auc
 from imblearn.over_sampling import SMOTE
 from imblearn.pipeline import Pipeline as imbpipeline
 import shap
@@ -22,21 +22,46 @@ class MLClassifier:
         }
         self.param_grids = {
             'Logistic Regression': {
-                'classifier__C': [0.01, 0.1, 1, 10, 100, 1000],
-                'classifier__penalty': ['l1', 'l2'],
-
+                'clf__C': [0.01, 0.1, 1, 10, 100, 1000],
+                'clf__penalty': ['l1', 'l2'],
             },
             'Random Forest': {
-                'classifier__n_estimators': [10, 100, 1000],
-                'classifier__max_features': ['auto', 'sqrt', 'log2']
+                'clf__n_estimators': [10, 100, 1000],
+                'clf__max_features': ['auto', 'sqrt', 'log2']
             },
             'XGBoost': {
-                'classifier__n_estimators': [10, 100, 1000],
-                'classifier__learning_rate': [0.001, 0.01, 0.1]
+                'clf__n_estimators': [10, 100, 1000],
+                'clf__learning_rate': [0.001, 0.01, 0.1]
             }
         }
         self.best_params = {}
-    
+
+    def train_models(self):
+        X_train, X_test, y_train, y_test = self.preprocess_data(self.data)
+        
+        for model_name, model in self.models.items():
+            smote = SMOTE(random_state=42, k_neighbors=5)
+            pipeline = imbpipeline(steps=[('smote', smote), ('clf', model)])
+            grid_search = GridSearchCV(
+                estimator=pipeline,
+                param_grid=self.param_grids[model_name],
+                scoring=make_scorer(roc_auc_score),
+                cv=StratifiedKFold(n_splits=5, shuffle=True, random_state=42),
+                n_jobs=1,
+                verbose=1
+            )
+            
+            grid_search.fit(X_train, y_train)
+            self.best_params[model_name] = grid_search.best_params_
+            best_model = grid_search.best_estimator_
+            y_pred = best_model.predict(X_test)
+            y_pred_proba = best_model.predict_proba(X_test)[:, 1]
+            auc = roc_auc_score(y_test, y_pred_proba)
+            
+            print(f"Best parameters for {model_name}: {grid_search.best_params_}")
+            print(f"AUC-ROC for {model_name}: {auc:.4f}")
+            print("-----")
+
     def preprocess_data(self, data, drop_time_diff=True):
         if drop_time_diff:
             X = data.drop(columns=[self.target, 'time_diff'])
@@ -81,10 +106,13 @@ class MLClassifier:
     def train_models_specific_feature(self, X_train, X_test, y_train, y_test, feature_name):
         model_results = {}
         for model_name, model in self.models.items():
-            model.fit(X_train[[feature_name]], y_train) 
-            y_pred = model.predict(X_test[[feature_name]])
-            y_pred_proba = model.predict_proba(X_test[[feature_name]])[:, 1]
-            
+            smote = SMOTE(random_state=42, k_neighbors=5)
+            pipeline = imbpipeline(steps=[('smote', smote), ('clf', model)])
+                
+            pipeline.fit(X_train[[feature_name]], y_train)
+            y_pred = pipeline.predict(X_test[[feature_name]])
+            y_pred_proba = pipeline.predict_proba(X_test[[feature_name]])[:, 1]
+
             dr = recall_score(y_test, y_pred)
             far = 1 - precision_score(y_test, y_pred, zero_division=1)
             auc_roc = roc_auc_score(y_test, y_pred_proba)
