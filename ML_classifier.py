@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKF
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 import xgboost as xgb
-from sklearn.metrics import roc_auc_score, make_scorer, recall_score, precision_score, precision_recall_curve, auc, confusion_matrix
+from sklearn.metrics import roc_auc_score, make_scorer, recall_score, precision_recall_curve, auc, confusion_matrix
 from imblearn.over_sampling import SMOTE
 from imblearn.pipeline import Pipeline as imbpipeline
 import shap
@@ -57,14 +57,13 @@ class MLClassifier:
                 param_grid=self.param_grids[model_name],
                 scoring=make_scorer(roc_auc_score),
                 cv=StratifiedKFold(n_splits=5, shuffle=True, random_state=42),
-                n_jobs=1,
+                n_jobs=-1,
                 verbose=1
             )
             
             grid_search.fit(X_train, y_train)
             self.best_params[model_name] = grid_search.best_params_
             best_model = grid_search.best_estimator_
-            y_pred = best_model.predict(X_test)
             y_pred_proba = best_model.predict_proba(X_test)[:, 1]
             auc = roc_auc_score(y_test, y_pred_proba)
             
@@ -72,9 +71,9 @@ class MLClassifier:
             print(f"AUC-ROC for {model_name}: {auc:.4f}")
             print("-----")
     
-    def calculate_metrics_for_combinations(self):
+    def sensitivity_analysis(self):
         hops = [-5,-4,-3,-2,-1,0,1,2,3,4,5]  
-        time_diffs = np.arange(-4, 7.5, 0.5)  
+        time_diffs = np.arange(0, 7.5, 0.5)  
         features = ['speed', 'volume', 'occupancy']
         
         results = []
@@ -109,6 +108,7 @@ class MLClassifier:
         for model_name, model in self.models.items():
             smote = SMOTE(random_state=42, k_neighbors=5)
             pipeline = imbpipeline(steps=[('smote', smote), ('clf', model)])
+            pipeline.set_params(**self.best_params[model_name])
                 
             pipeline.fit(X_train[[feature_name]], y_train)
             y_pred = pipeline.predict(X_test[[feature_name]])
