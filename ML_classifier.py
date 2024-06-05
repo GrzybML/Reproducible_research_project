@@ -126,37 +126,47 @@ class MLClassifier:
 
         return model_results
 
-    def generate_heatmap(self, results, metric, setting):
+    def generate_heatmap(self, results):
+        settings = [1, 2]
+        
+        metrics = set()
+        for res in results:
+            for key in res.keys():
+                if key not in {'time_diff', 'hop', 'feature', 'model'}:
+                    metrics.add(key)
+    
         for model_name in self.models.keys():
-            df = pd.DataFrame([res for res in results if res['model'] == model_name])
+            for setting in settings:
+                for metric in metrics:
+                    df = pd.DataFrame([res for res in results if res['model'] == model_name])
             
-            if setting == 1:
-                df = df[(df['hop'] <= 0) & (df['time_diff'] >= 0)]
-            elif setting == 2:
-                df = df[(df['time_diff'] >= 0)]
-                df['hop'] = [(f'+/-{abs(hop)}' if hop != 0 else '0') for hop in df['hop']]
+                    if setting == 1:
+                        df = df[(df['hop'] <= 0) & (df['time_diff'] >= 0)]
+                    elif setting == 2:
+                        df = df[(df['time_diff'] >= 0)]
+                        df['hop'] = [(f'+/-{abs(hop)}' if hop != 0 else '0') for hop in df['hop']]
 
-            df_agg = df.groupby(['hop', 'time_diff'])[metric].mean().unstack()
+                    df_agg = df.groupby(['hop', 'time_diff'])[metric].mean().unstack()
             
-            if setting == 2:
-                order = [f"+/-{i}" for i in range(5, 0, -1)] + ["0"]
-                df_agg = df_agg.reindex(order)
+                    if setting == 2:
+                        order = [f"+/-{i}" for i in range(5, 0, -1)] + ["0"]
+                        df_agg = df_agg.reindex(order)
 
-            plt.figure(figsize=(12, 10))
-            heatmap = sns.heatmap(df_agg, annot=True, cmap='YlOrRd', fmt=".2f", cbar_kws={'label': metric, 'location': 'left'})
-            plt.title(f'Heatmap of {metric} for {model_name} (Setting {setting})')
-            heatmap.set_xlabel(None)
-            heatmap.set_ylabel(None)
-            x_labels = [f"{label} min" for label in df_agg.columns]
-            heatmap.set_xticklabels(x_labels) 
-            y_labels = [f"{label} hop" for label in df_agg.index]
-            heatmap.set_yticklabels(y_labels) 
-            plt.xticks(rotation=90)
-            plt.yticks(rotation=90)
+                    plt.figure(figsize=(12, 10))
+                    heatmap = sns.heatmap(df_agg, annot=True, cmap='YlOrRd', fmt=".2f", cbar_kws={'label': metric, 'location': 'left'})
+                    plt.title(f'Heatmap of {metric} for {model_name} (Setting {setting})')
+                    heatmap.set_xlabel(None)
+                    heatmap.set_ylabel(None)
+                    x_labels = [f"{label} min" for label in df_agg.columns]
+                    heatmap.set_xticklabels(x_labels) 
+                    y_labels = [f"{label} hop" for label in df_agg.index]
+                    heatmap.set_yticklabels(y_labels) 
+                    plt.xticks(rotation=90)
+                    plt.yticks(rotation=90)
             
-            output_path = os.path.join(self.output_dir, f'heatmap_{model_name}_{metric}_setting_{setting}.png')
-            plt.savefig(output_path)
-            plt.close()
+                    output_path = os.path.join(self.output_dir, f'heatmap_{model_name}_{metric}_setting_{setting}.png')
+                    plt.savefig(output_path)
+                    plt.close()
 
     def plot_shap_values(self, model_name='XGBoost'):
         X_train, X_test, y_train, y_test = self.preprocess_data(self.data, drop_time_diff=False)
