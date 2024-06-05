@@ -2,8 +2,8 @@ import os
 import pandas as pd
 
 # Load data
-accident_path = 'data/bestData/accident'
-nonaccident_path = 'data/bestData/non-accident'
+accident_path = 'data/input/bestData/accident'
+nonaccident_path = 'data/input/bestData/non-accident'
 
 all_accident = os.listdir(accident_path)
 all_nonaccident = os.listdir(nonaccident_path)
@@ -49,9 +49,9 @@ nonaccidentI75_data
 # Merge I24 data and write to CSV
 I24_data = pd.concat([accidentI24_data, nonaccidentI24_data], ignore_index=True)
 I24_data
-I24_data.to_csv('data/I24_data.csv', index=False)
+I24_data.to_csv('data/input/I24_data.csv', index=False)
 
 # Merge I75 data and write to CSV
 I75_data = pd.concat([accidentI75_data, nonaccidentI75_data], ignore_index=True)
 I75_data
-I75_data.to_csv('data/I75_data.csv', index=False)
+I75_data.to_csv('data/input/I75_data.csv', index=False)
