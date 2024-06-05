@@ -134,6 +134,7 @@ class MLClassifier:
                 df = df[(df['hop'] <= 0) & (df['time_diff'] >= 0)]
             elif setting == 2:
                 df = df[(df['time_diff'] >= 0)]
+                df['hop'] = ['i' + (f'±{abs(hop)}' if hop != 0 else '+0') for hop in df['hop']]
 
             df_agg = df.groupby(['hop', 'time_diff'])[metric].mean().unstack()
 
