@@ -22,14 +22,14 @@ class MLClassifier:
         }
         self.param_grids = {
             'Logistic Regression': {
-                'classifier__C': [0.01, 0.1, 1, 10, 100]
+                'clf__C': [0.01, 0.1, 1, 10, 100]
             },
             'Random Forest': {
-                'classifier__n_estimators': [10, 100, 1000]
+                'clf__n_estimators': [10, 100, 1000]
             },
             'XGBoost': {
-                'classifier__n_estimators': [10, 100, 1000],
-                'classifier__learning_rate': [0.001, 0.01, 0.1]
+                'clf__n_estimators': [10, 100, 1000],
+                'clf__learning_rate': [0.001, 0.01, 0.1]
             }
         }
         self.best_params = {}
