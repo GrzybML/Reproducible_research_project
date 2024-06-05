@@ -134,17 +134,25 @@ class MLClassifier:
                 df = df[(df['hop'] <= 0) & (df['time_diff'] >= 0)]
             elif setting == 2:
                 df = df[(df['time_diff'] >= 0)]
-                df['hop'] = ['i' + (f'±{abs(hop)}' if hop != 0 else '+0') for hop in df['hop']]
+                df['hop'] = [(f'+/-{abs(hop)}' if hop != 0 else '0') for hop in df['hop']]
 
             df_agg = df.groupby(['hop', 'time_diff'])[metric].mean().unstack()
+            
+            if setting == 2:
+                order = [f"+/-{i}" for i in range(5, 0, -1)] + ["0"]
+                df_agg = df_agg.reindex(order)
 
             plt.figure(figsize=(12, 10))
-            sns.heatmap(df_agg, annot=True, cmap='YlOrRd', fmt=".2f", cbar_kws={'label': metric})
+            heatmap = sns.heatmap(df_agg, annot=True, cmap='YlOrRd', fmt=".2f", cbar_kws={'label': metric, 'location': 'left'})
             plt.title(f'Heatmap of {metric} for {model_name} (Setting {setting})')
-            plt.ylabel('Hop') 
-            plt.xlabel('Time Diff (min)')  
-            plt.xticks(rotation=45)
-            plt.yticks(rotation=0)
+            heatmap.set_xlabel(None)
+            heatmap.set_ylabel(None)
+            x_labels = [f"{label} min" for label in df_agg.columns]
+            heatmap.set_xticklabels(x_labels) 
+            y_labels = [f"{label} hop" for label in df_agg.index]
+            heatmap.set_yticklabels(y_labels) 
+            plt.xticks(rotation=90)
+            plt.yticks(rotation=90)
             
             output_path = os.path.join(self.output_dir, f'heatmap_{model_name}_{metric}_setting_{setting}.png')
             plt.savefig(output_path)
