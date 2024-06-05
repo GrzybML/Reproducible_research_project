@@ -2,7 +2,7 @@ import pandas as pd
 from ML_classifier import MLClassifier
 
 # Load the preprocessed data
-data_path = 'data/preprocessed_I75_data.csv'
+data_path = 'data/preprocessed_data.csv'
 preprocessed_I75_data = pd.read_csv(data_path, low_memory=False)
 
 # Subset the data for testing or demonstration
