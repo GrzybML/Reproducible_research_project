@@ -31,6 +31,3 @@ class DataPreprocessor:
     
     def get_preprocessed_data(self):
         return self.data
-    
-    def save_preprocessed_data(self, file_path='./data/preprocessed_data.csv'):
-        self.data.to_csv(file_path, index=False)
