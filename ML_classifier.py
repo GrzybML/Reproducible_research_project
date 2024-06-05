@@ -141,9 +141,8 @@ class MLClassifier:
                     df = pd.DataFrame([res for res in results if res['model'] == model_name])
             
                     if setting == 1:
-                        df = df[(df['hop'] <= 0) & (df['time_diff'] >= 0)]
+                        df = df[(df['hop'] <= 0)]
                     elif setting == 2:
-                        df = df[(df['time_diff'] >= 0)]
                         df['hop'] = [(f'+/-{abs(hop)}' if hop != 0 else '0') for hop in df['hop']]
 
                     df_agg = df.groupby(['hop', 'time_diff'])[metric].mean().unstack()
@@ -233,7 +232,7 @@ class MLClassifier:
         explainer = shap.Explainer(pipeline.named_steps['clf'], X_train)
         shap_values = explainer(X_train)
 
-        print(f"SHAP values for {best_model_details['model_name']} at TTDA {best_model_details['time_diff']} min under setting {best_model_details['setting']}")
+        print(f"SHAP values for {best_model_details['model_name']} at TTDA {best_model_details['time_diff']} min under Setting {best_model_details['setting']}")
         plt.figure(figsize=(10, 6))
         shap.summary_plot(shap_values.values[...,1], X_train, plot_type="dot")
         plt.show()
