@@ -1,5 +1,5 @@
 import pandas as pd
-from ML_classifier import MLClassifier
+from scripts.utils.ML_classifier import MLClassifier
 
 # # Load the preprocessed data
 # data_path = 'data/preprocessed_data.csv'

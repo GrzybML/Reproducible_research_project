@@ -1,5 +1,5 @@
 import pandas as pd
-from data_preprocessor import DataPreprocessor
+from scripts.utils.data_preprocessor import DataPreprocessor
 
 # Load the data
 data_path = './data/I75_data.csv'
