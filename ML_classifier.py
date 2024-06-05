@@ -168,19 +168,6 @@ class MLClassifier:
                     plt.savefig(output_path)
                     plt.close()
 
-    def plot_shap_values(self, model_name='XGBoost'):
-        X_train, X_test, y_train, y_test = self.preprocess_data(self.data, drop_time_diff=False)
-        model = self.models[model_name]
-        model.fit(X_train, y_train)
-
-        explainer = shap.Explainer(model, X_train)
-        shap_values = explainer(X_train)
-
-        plt.figure(figsize=(10, 6))
-        shap.summary_plot(shap_values, X_train, plot_type="dot")
-
-        plt.show()
-
     def generate_summary_table(self, results):
         summary = {'Setting': [], 'Model': [], 'DR': [], 'FAR': [], 'AUC-ROC': [], 'AUC-PR': []}
         for setting in [1, 2]:
@@ -203,4 +190,50 @@ class MLClassifier:
                 summary['AUC-PR'].append(f"{np.nanmean(auc_pr_values):.2f} ({np.nanstd(auc_pr_values):.2f})/{np.nanmedian(auc_pr_values):.2f}")
         
         df_summary = pd.DataFrame(summary)
-        return df_summary
+        return df_summary    
+    
+    def plot_shap_values(self, results):
+        best_auc_pr = 0
+        best_model_details = None
+        
+        for setting in [1, 2]:
+            for model_name in self.models.keys():
+                df_results = pd.DataFrame([res for res in results if res['model'] == model_name])
+                if setting == 1:
+                    setting_results = df_results[df_results['hop'] <= 0]
+                elif setting == 2:
+                    df_results['hop'] = [f'+/-{abs(hop)}' if hop != 0 else '0' for hop in df_results['hop']]
+                    setting_results = df_results
+                    
+                if not setting_results.empty:
+                    df_agg = setting_results.groupby(['hop', 'time_diff'])['AUC-PR'].mean().unstack()
+                    max_auc_pr_index = df_agg.stack().idxmax()  
+                    max_auc_pr = df_agg.loc[max_auc_pr_index] 
+
+                    if max_auc_pr > best_auc_pr:  
+                        best_auc_pr = max_auc_pr
+                        best_model_details = {
+                            'time_diff': max_auc_pr_index[1],
+                            'hop': max_auc_pr_index[0],
+                            'model_name': model_name,
+                            'setting': setting
+                        }
+        
+        best_data = self.data[(self.data['time_diff'] == best_model_details['time_diff'])]
+        X_train, _, y_train, _ = self.preprocess_data(best_data, drop_time_diff=True)
+        
+        bool_columns = X_train.select_dtypes(include=['bool']).columns
+        X_train[bool_columns] = X_train[bool_columns].astype(int)
+        
+        best_model = self.models[best_model_details['model_name']]
+        pipeline = imbpipeline(steps=[('smote', SMOTE(random_state=42)), ('clf', best_model)])
+        pipeline.set_params(**self.best_params[best_model_details['model_name']])
+        pipeline.fit(X_train, y_train)
+
+        explainer = shap.Explainer(pipeline.named_steps['clf'], X_train)
+        shap_values = explainer(X_train)
+
+        print(f"SHAP values for {best_model_details['model_name']} at TTDA {best_model_details['time_diff']} min under setting {best_model_details['setting']}")
+        plt.figure(figsize=(10, 6))
+        shap.summary_plot(shap_values.values[...,1], X_train, plot_type="dot")
+        plt.show()
