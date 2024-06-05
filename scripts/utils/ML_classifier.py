@@ -23,7 +23,7 @@ class MLClassifier:
         }
         self.param_grids = {
             'Logistic Regression': {
-                'clf__C': [0.01, 0.1, 1, 10, 100, 1000]
+                'clf__C': [0.01, 0.1, 1, 10, 100]
             },
             'Random Forest': {
                 'clf__n_estimators': [10, 100, 1000]
