@@ -172,9 +172,11 @@ class MLClassifier:
         for setting in [1, 2]:
             for model_name in self.models.keys():
                 if setting == 1:
-                    setting_results = [res for res in results if res['model'] == model_name and res['hop'] >= 0 and res['time_diff'] >= 0]
+                    setting_results = [res for res in results if res['model'] == model_name and res['hop'] <= 0]
                 elif setting == 2:
-                    setting_results = [res for res in results if res['model'] == model_name and res['hop'] <= 0 and res['time_diff'] >= 0]
+                    setting_results = [res for res in results if res['model'] == model_name]
+                    for res in setting_results:
+                        res['hop'] = f'+/-{abs(res["hop"])}' if res['hop'] != 0 else '0'
 
                 dr_values = [res['DR'] for res in setting_results]
                 far_values = [res['FAR'] for res in setting_results]
