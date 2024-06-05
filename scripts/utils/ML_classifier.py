@@ -13,7 +13,7 @@ import shap
 import os
 
 class MLClassifier:
-    def __init__(self, data, target, output_dir='../output'):
+    def __init__(self, data, target, output_dir='output'):
         self.data = data
         self.target = target
         self.models = {
