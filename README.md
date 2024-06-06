@@ -82,6 +82,9 @@ Sections:
 - Sensitivity Analysis: Conducts sensitivity analysis on the models.
 - Results Visualization: Generates heatmaps and SHAP plots for interpreting model performance.
 
+**data_preprocessor.py**
+Contains the DataPreprocessor class for handling missing data and encoding categorical variables.
+
 **data_preparation.py**
 Contains functions for data loading, cleaning, and feature generation.
 
