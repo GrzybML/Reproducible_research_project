@@ -1,6 +1,8 @@
 # Accident Detection Analysis
 
-This repository contains the code and data for accident detection analysis using various machine learning models. The primary goal of this project is to replicate the results and findings of a specific research paper that investigates the impact of neighboring sensor measurements and Time-to-Detection Accuracy (TTDA) on accident detection.
+This repository contains the code and data for accident detection analysis using various machine learning models. The primary goal of this project is to replicate the results and findings of a specific research paper that investigates the impact of neighboring sensor measurements and Time-to-Detection Accuracy (TTDA) on accident detection. 
+
+Link to the paper with dataset: https://zenodo.org/records/7964288?fbclid=IwAR2LaBH597NvJrA9z8qyvHb0aFHbTnqvm_sM-UHq65XLcJfoKq2LuMClrD8
 
 ## Table of Contents
 - [Introduction](#introduction)
@@ -72,18 +74,18 @@ This repository has three branches:
 
 ## File Descriptions
 
-**I24_main.ipynb** and **I75_main.ipynb**
-Contains the Jupyter notebook for the analysis conducted on the I-24/I-75 intersection. It includes data loading, preprocessing, model training, and evaluation.
-
-Sections:
-- Data Loading: Loads the data for I-24/I-75 intersection.
-- Data Preprocessing: Cleans and prepares the data for analysis.
-- Model Training and Evaluation: Trains the models and evaluates their performance.
-- Sensitivity Analysis: Conducts sensitivity analysis on the models.
-- Results Visualization: Generates heatmaps and SHAP plots for interpreting model performance.
-
 **data_preparation.py**
 Contains functions for data loading, cleaning, and feature generation.
+
+**data_preprocessor.py**
+Contains the DataPreprocessor class for handling missing data and encoding categorical variables.
+
+Classes and Functions:
+- __init__(self, data): Initializes the DataPreprocessor with a copy of the input data.
+- replace_missings(self, columns=None): Replaces missing values in specified columns (or all columns if none are specified). For numerical columns, it replaces missing values with the median; for categorical columns, it replaces them with -'Unknown'.
+- handle_missings(self, columns=None): Handles missing values in specified columns (or all columns if none are specified) by using a constant value (-99999) for numerical columns.
+- one_hot_encode(self, columns=None): Performs one-hot encoding for the specified categorical columns (or all categorical columns if none are specified), dropping the first category to avoid multicollinearity.
+- get_preprocessed_data(self): Returns the preprocessed data.
 
 **ML_classifier.py**
 Contains the machine learning classifier class and related functions.
@@ -98,6 +100,16 @@ Classes and Functions:
 - generate_heatmap(self, results): Generates heatmaps for visualizing performance metrics across different settings.
 - generate_summary_table(self, results): Creates a summary table of the performance metrics.
 - plot_shap_values(self, results): Plots SHAP values to interpret model predictions.
+
+**I24_main.ipynb** and **I75_main.ipynb**
+Contains the Jupyter notebook for the analysis conducted on the I-24/I-75 intersection. It includes data loading, preprocessing, model training, and evaluation.
+
+Sections:
+- Data Loading: Loads the data for I-24/I-75 intersection.
+- Data Preprocessing: Cleans and prepares the data for analysis.
+- Model Training and Evaluation: Trains the models and evaluates their performance.
+- Sensitivity Analysis: Conducts sensitivity analysis on the models.
+- Results Visualization: Generates heatmaps and SHAP plots for interpreting model performance.
 
 ## Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.
