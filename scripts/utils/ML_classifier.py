@@ -237,5 +237,5 @@ class MLClassifier:
         print(f"SHAP values for {best_model_details['model_name']} at TTDA {best_model_details['time_diff']} min under Setting {best_model_details['setting']}")
 
         plt.figure(figsize=(10, 6))
-        shap.summary_plot(shap_values.values[...,1], X_train, plot_type="dot")
+        shap.summary_plot(shap_values.values, X_train, plot_type="dot")
         plt.show()
