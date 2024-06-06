@@ -56,7 +56,7 @@ To run the analysis, follow these steps:
 pip install -r requirements.txt
 
 3. Run the main analysis script:
-python ....
+jupyter nbconvert --to notebook --execute I24_main.ipynb
 
 ## Branch Descriptions
 
