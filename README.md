@@ -52,17 +52,19 @@ To run the analysis, follow these steps:
    git clone https://github.com/GrzybML/Reproducible_research_project
    cd Reproducible_research_project
 
-2. Install the required dependencies:   
-pip install -r requirements.txt
+2. Install the required dependencies:
+   ```bash
+   pip install -r requirements.txt
 
-3. Run the main analysis script:
-jupyter nbconvert --to notebook --execute I24_main.ipynb
+4. Run the main analysis script:
+   ```bash
+   jupyter nbconvert --to notebook --execute I24_main.ipynb
 
 ## Branch Descriptions
 
 This repository has three branches:
 
-**main**: The main branch containing the core structure and essential files.
+**main**: The main branch contains the core structure and essential files.
 **I24_data**: Contains the analysis and results for the I-24 intersection.
 **I75_data**: Contains the analysis and results for the I-75 intersection.
 
