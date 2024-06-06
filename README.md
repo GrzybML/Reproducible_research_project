@@ -43,7 +43,9 @@ The performance of the models is evaluated using the following metrics:
 - **AUC-PR**
 
 ## Results
-Tbu
+The final results present the **heatmaps** generated in the separate folder "output". Heatmaps are visual representations that display the performance metrics of the models across different settings. They help in identifying patterns and insights by showing variations in model performance based on different parameters, such as the number of sensors and time-to-detection accuracy.
+
+In addition to heatmaps, the notebook also generates **SHAP values** for the selected model. SHAP values provide interpretability by showing the contribution of each feature to the model's predictions. **Summary statistics** for the models and settings are also generated, giving a comprehensive overview of the model performances under different configurations.
 
 ## Usage
 To run the analysis, follow these steps:
