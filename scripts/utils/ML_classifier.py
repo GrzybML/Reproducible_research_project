@@ -176,7 +176,7 @@ class MLClassifier:
                 elif setting == 2:
                     setting_results = [res for res in results if res['model'] == model_name]
                     for res in setting_results:
-                        res['hop'] = f'+/-{abs(res["hop"])}' if res['hop'] != 0 else '0'
+                        res['hop'] = f'{abs(res["hop"])}' if res['hop'] != 0 else '0'
 
                 dr_values = [res['DR'] for res in setting_results]
                 far_values = [res['FAR'] for res in setting_results]
@@ -201,9 +201,9 @@ class MLClassifier:
             for model_name in self.models.keys():
                 df_results = pd.DataFrame([res for res in results if res['model'] == model_name])
                 if setting == 1:
-                    setting_results = df_results[df_results['hop'] <= 0]
+                    setting_results = df_results[df_results['hop'].astype(int) <= 0]
                 elif setting == 2:
-                    df_results['hop'] = [f'+/-{abs(hop)}' if hop != 0 else '0' for hop in df_results['hop']]
+                    df_results['hop'] = [f'{abs(int(hop))}' if hop != '0' else '0' for hop in df_results['hop']]
                     setting_results = df_results
                     
                 if not setting_results.empty:
@@ -219,7 +219,6 @@ class MLClassifier:
                             'model_name': model_name,
                             'setting': setting
                         }
-        
         best_data = self.data[(self.data['time_diff'] == best_model_details['time_diff'])]
         X_train, _, y_train, _ = self.preprocess_data(best_data, drop_time_diff=True)
         
